@@ -184,6 +184,7 @@ EventStream = (function(_super) {
 
   function EventStream() {
     this.merge = __bind(this.merge, this);
+    this.addDomEvent = __bind(this.addDomEvent, this);
     this.addEvent = __bind(this.addEvent, this);
     return EventStream.__super__.constructor.apply(this, arguments);
   }
@@ -196,6 +197,47 @@ EventStream = (function(_super) {
 
   EventStream.prototype.addEvent = function(eventCallback) {
     return eventCallback(this.publish);
+  };
+
+  EventStream.prototype.addDomEvent = function(eventNames, domNodes) {
+    var domNode, eventName, sNode, selected, self, _i, _len, _results;
+    assertNotNull(arguments);
+    if (!isArray(domNodes)) {
+      domNodes = [domNodes];
+    }
+    if (!isArray(eventNames)) {
+      eventNames = [eventNames];
+    }
+    self = this;
+    _results = [];
+    for (_i = 0, _len = domNodes.length; _i < _len; _i++) {
+      domNode = domNodes[_i];
+      if (isString(domNode)) {
+        selected = document.querySelectorAll(domNode);
+      } else {
+        selected = [domNode];
+      }
+      _results.push((function() {
+        var _j, _len1, _results1;
+        _results1 = [];
+        for (_j = 0, _len1 = selected.length; _j < _len1; _j++) {
+          sNode = selected[_j];
+          _results1.push((function() {
+            var _k, _len2, _results2;
+            _results2 = [];
+            for (_k = 0, _len2 = eventNames.length; _k < _len2; _k++) {
+              eventName = eventNames[_k];
+              _results2.push(addEventListener(sNode, eventName, function(e) {
+                return self.publish(e);
+              }));
+            }
+            return _results2;
+          })());
+        }
+        return _results1;
+      })());
+    }
+    return _results;
   };
 
   EventStream.prototype.merge = function(stream) {

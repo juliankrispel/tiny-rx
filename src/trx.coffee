@@ -112,6 +112,24 @@ class EventStream extends Observable
     addEvent: (eventCallback) =>
         eventCallback(@publish)
 
+    addDomEvent: (eventNames, domNodes) =>
+        assertNotNull(arguments)
+        domNodes = [domNodes] unless isArray(domNodes)
+        eventNames = [eventNames] unless isArray(eventNames)
+        self = @
+
+        for domNode in domNodes
+            if(isString(domNode))
+                selected = document.querySelectorAll(domNode) 
+            else
+                selected = [domNode]
+            for sNode in selected
+                for eventName in eventNames
+                    addEventListener(sNode, eventName, (e)->
+                        self.publish(e)
+                    )
+
+
     merge: (stream) =>
         self = @
         new EventStream((cb)->
