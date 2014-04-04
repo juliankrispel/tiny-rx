@@ -1,0 +1,26 @@
+{
+  "name": "tiny-rx",
+  "version": "0.0.0",
+  "description": "",
+  "main": "main.js",
+  "dependencies": {
+    "gulp": "~3.6.0",
+    "gulp-coffee": "~1.4.1"
+  },
+  "devDependencies": {
+    "gulp-watch": "~0.5.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/juliankrispel/tiny-rx.git"
+  },
+  "author": "Julian Krispel-Samsel <juliankrispel@yahoo.de> (http://goodafternoon.co/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/juliankrispel/tiny-rx/issues"
+  },
+  "homepage": "https://github.com/juliankrispel/tiny-rx"
+}
