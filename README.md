@@ -31,8 +31,9 @@ clickEvents.subscribe(function(e){
 Pretty standard ey, now let's see what tiny-rx can really do
 
 3. Organising EventStreams
-With tiny-rx you have tools to help you to map and filter your events, extract properties etc. Let's say we want to listen to certain
+With tiny-rx you have tools to help you to map and filter your events, extract properties etc. 
 
+TODO: Write a good readme
 
 
 ```javascript
