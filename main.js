@@ -1,0 +1,2 @@
+var EventStream = function(){
+};
