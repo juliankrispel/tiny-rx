@@ -13,7 +13,7 @@ Include in your html file
 ```
 
 ##Using trx
-At the moment you can create a eventstreams and filter them, Filtering an eventstream returns a new eventstream that subscribes to the filtered one, that's pretty much it. But just with that alone a lot can be achieved:
+At the moment you can create a eventstreams, filter them, and subscribe to them. Filtering an eventstream returns a new eventstream that subscribes to the filtered one, that's pretty much it. But just with that alone a lot can be achieved:
 
 ```javascript
 var clickEvents = trx.fromDomEvent('click', document.body);
@@ -28,6 +28,10 @@ var helloButtonPressed = buttonPressed.filter(function(e){
 
 var numberButtonPressed = buttonPressed.filter(function(e){
     return typeof parseInt(e.target.textContent) == 'number';
+});
+
+numberButtonPressed.subscribe(function(e){
+    alert('Pressed button with number ' + e.target.textContent);
 });
 ```
 
