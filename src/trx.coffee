@@ -30,13 +30,19 @@ assertDomNode = (domNode) ->
     unless domNode.hasOwnProperty('nodeType')
         throw new Error 'variable does not contain html element'
 
-fromDomEvent = (eventName, domNode)->
+isArray = (obj) ->
+    Object.prototype.toString.call( obj ) == '[object Array]'
+
+fromDomEvent = (eventNames, domNode)->
     assertNotNull(arguments)
     assertDomNode(domNode)
+    unless isArray(eventNames)
+        eventNames = [eventNames]
     new EventStream((cb)->
-        domNode.addEventListener(eventName, (e)->
-            cb(e)
-        )
+        for eventName in eventNames
+            domNode.addEventListener(eventName, (e)->
+                cb(e)
+            )
     )
 
 window.trx = {

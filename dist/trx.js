@@ -1,4 +1,4 @@
-var EventStream, assertDomNode, assertNotNull, fromDomEvent,
+var EventStream, assertDomNode, assertNotNull, fromDomEvent, isArray,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 EventStream = (function() {
@@ -66,13 +66,26 @@ assertDomNode = function(domNode) {
   }
 };
 
-fromDomEvent = function(eventName, domNode) {
+isArray = function(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
+fromDomEvent = function(eventNames, domNode) {
   assertNotNull(arguments);
   assertDomNode(domNode);
+  if (!isArray(eventNames)) {
+    eventNames = [eventNames];
+  }
   return new EventStream(function(cb) {
-    return domNode.addEventListener(eventName, function(e) {
-      return cb(e);
-    });
+    var eventName, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = eventNames.length; _i < _len; _i++) {
+      eventName = eventNames[_i];
+      _results.push(domNode.addEventListener(eventName, function(e) {
+        return cb(e);
+      }));
+    }
+    return _results;
   });
 };
 
