@@ -13,7 +13,7 @@ Include in your html file
 ```
 
 ##Using trx
-At the moment you can create a eventstreams, filter them, and subscribe to them. Filtering an eventstream returns a new eventstream that subscribes to the filtered one, that's pretty much it. But just with that alone a lot can be achieved:
+At the moment you can create eventstreams, filter them, and subscribe to them. Filtering an eventstream returns a new eventstream that subscribes to the filtered one, that's pretty much it. But just with that alone a lot can be achieved:
 
 ```javascript
 var clickEvents = trx.fromDomEvent('click', document.body);
