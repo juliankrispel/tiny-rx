@@ -1,4 +1,4 @@
-var EventStream, assertDomNode, assertNotNull, fromDomEvent, isArray, isFunction,
+var EventStream, applyMapping, assertDomNode, assertNotNull, fromDomEvent, isArray, isFunction, isObject, isString,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 EventStream = (function() {
@@ -6,6 +6,8 @@ EventStream = (function() {
     this.publish = __bind(this.publish, this);
     this.filter = __bind(this.filter, this);
     this.later = __bind(this.later, this);
+    this.map = __bind(this.map, this);
+    this.merge = __bind(this.merge, this);
     this.addEvent = __bind(this.addEvent, this);
     this.subscribe = __bind(this.subscribe, this);
     this._subscribers = [];
@@ -20,18 +22,39 @@ EventStream = (function() {
   };
 
   EventStream.prototype.addEvent = function(eventCallback) {
-    return eventCallback(this.publish);
+    return eventCallback(this.pconjs, ublish);
   };
 
-  EventStream.prototype.later = function(delay, value, cancelEvent) {
+  EventStream.prototype.merge = function(stream) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      self.subscribe(function(e) {
+        return cb(e);
+      });
+      return stream.subscribe(function(e) {
+        return cb(e);
+      });
+    });
+  };
+
+  EventStream.prototype.map = function(mapping) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      return applyMapping(self.subscriber, cb, mapping);
+    });
+  };
+
+  EventStream.prototype.later = function(delay, value, cancelingEvent) {
     var callback, self, timeoutId;
     self = this;
     callback = function() {
       return self.publish(value);
     };
     timeoutId = setTimeout(callback, delay);
-    if (isFunction(cancelEvent)) {
-      return cancelEvent(function() {
+    if (isFunction(cancelingEvent)) {
+      return cancelingEvent(function() {
         return clearTimeout(timeoutId);
       });
     }
@@ -64,6 +87,20 @@ EventStream = (function() {
 
 })();
 
+applyMapping = function(subscriber, cb, mapping) {
+  if (isFunction(mapping)) {
+    return subscriber(function(e) {
+      return cb(mapping(e));
+    });
+  } else if (isString(mapping)) {
+    return subscriber(function(e) {
+      if (e.hasOwnProperty(mapping)) {
+        return cb(e[mapping]);
+      }
+    });
+  }
+};
+
 assertNotNull = function(args) {
   var a, _i, _len, _results;
   _results = [];
@@ -84,6 +121,14 @@ assertDomNode = function(domNode) {
   }
 };
 
+isObject = function(obj) {
+  return !!a && (a.constructor === Object);
+};
+
+isString = function(obj) {
+  return typeof obj === 'string' || obj instanceof String;
+};
+
 isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
 };
@@ -98,13 +143,13 @@ fromDomEvent = function(eventNames, domNode) {
   if (!isArray(eventNames)) {
     eventNames = [eventNames];
   }
-  return new EventStream(function(cb) {
+  return new EventStream(function(signal) {
     var eventName, _i, _len, _results;
     _results = [];
     for (_i = 0, _len = eventNames.length; _i < _len; _i++) {
       eventName = eventNames[_i];
       _results.push(domNode.addEventListener(eventName, function(e) {
-        return cb(e);
+        return signal(e);
       }));
     }
     return _results;
