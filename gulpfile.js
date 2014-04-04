@@ -8,6 +8,12 @@ gulp.task('default', function () {
     gulp.src('./src/*.coffee')
         .pipe(watch(function(files) {
             return files.pipe(coffee({bare: true}))
-                .pipe(gulp.dest('./public/'));
+                .pipe(gulp.dest('./dist/'));
         }));
+    gulp.src('./test/*.coffee')
+        .pipe(watch(function(files) {
+            return files.pipe(coffee({bare: true}))
+                .pipe(gulp.dest('./build/'));
+        }));
+
 });
