@@ -3,7 +3,8 @@ var coffee = require('gulp-coffee');
 
 var gulp = require('gulp'),
     watch = require('gulp-watch'),
-    uglify = require('gulp-uglify');
+    uglify = require('gulp-uglify'),
+    rename = require('gulp-rename');
 
 gulp.task('default', function () {
     gulp.src('./src/*.coffee')
@@ -11,6 +12,7 @@ gulp.task('default', function () {
             return files.pipe(coffee({bare: true}))
                 .pipe(gulp.dest('./dist/'))
                 .pipe(uglify())
+                .pipe(rename({suffix: '.min'}))
                 .pipe(gulp.dest('./dist/'));
         }));
     gulp.src('./test/*.coffee')

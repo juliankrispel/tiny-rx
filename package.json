@@ -8,7 +8,8 @@
     "gulp": "~3.6.0",
     "gulp-watch": "~0.5.3",
     "gulp-coffee": "~1.4.1",
-    "gulp-uglify": "~0.2.1"
+    "gulp-uglify": "~0.2.1",
+    "gulp-rename": "~1.2.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

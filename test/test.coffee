@@ -1,8 +1,9 @@
 keyup = trx.fromDomEvent('keyup', document.body)
-button = document.querySelector('button')
+button = document.querySelectorAll('button')
 mousedown = trx.fromDomEvent('mousedown', button)
 mouseup = trx.fromDomEvent(['mouseleave', 'mouseup'], button)
 longPress = trx.createStream()
+
 
 #`mousedown.subscribe((e)->
 #`    console.log('mousedown')
@@ -32,19 +33,31 @@ prev = buttonKeyup.filter({keyCode: 13, target: {nodeName: 'BUTTON'}})
 #    console.log e
 #)
 
-plusButton = document.getElementById('plus')
-minusButton = document.getElementById('minus')
 
-plusminus = trx.fromDomEvent('click', minusButton).map(-1).merge(
-    trx.fromDomEvent('click', plusButton).map(1)
+number = trx.fromDomEvent('click', '.number').map(
+    (e)->
+        parseInt(e.target.textContent)
+)
+displayNumber = number.toProperty((memo, e)->
+    memo + e
 )
 
-prop = trx.createProperty(plusminus.subscribe, (history, e)->
-    history.pop() if(history.length > 4)
+display = document.querySelector('.counter')
+helement = document.querySelector('.history')
+combination = document.querySelector('.combination')
+
+history = trx.createProperty(number.subscribe, (history, e)->
+    history.shift() if(history.length > 4)
     history.push e
     history
 , [])
 
-prop.subscribe((prop)->
-    console.log(prop)
+displayNumber.subscribe((number)->
+    display.textContent = number
+)
+
+history.subscribe((h)->
+    helement.textContent = h.join(', ')
+    if(h.join('') == '12345')
+        combination.textContent = 'Combination Unlocked mate'
 )

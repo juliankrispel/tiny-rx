@@ -1,1 +1,369 @@
-var EventStream,Observable,Property,applyExtraction,applyFilter,applyMapping,assertDomNode,assertFunction,assertNotNull,assertString,fromDomEvent,isArray,isDomNode,isFunction,isNumber,isObject,isString,needlesInHaystack,__bind=function(t,n){return function(){return t.apply(n,arguments)}},__hasProp={}.hasOwnProperty,__extends=function(t,n){function r(){this.constructor=t}for(var e in n)__hasProp.call(n,e)&&(t[e]=n[e]);return r.prototype=n.prototype,t.prototype=new r,t.__super__=n.prototype,t};Observable=function(){function t(){this.publish=__bind(this.publish,this),this.subscribe=__bind(this.subscribe,this),this._subscribers=[],this._init.apply(this,arguments)}return t.prototype.subscribe=function(t){return this._subscribers.push(t),this},t.prototype.publish=function(t){var n,r,e,i;for(i=this._subscribers,r=0,e=i.length;e>r;r++)(n=i[r])(t);return this},t}(),Property=function(t){function n(){return n.__super__.constructor.apply(this,arguments)}return __extends(n,t),n.prototype._init=function(t,n,r){var e;return null==r&&(r=0),assertFunction(t),assertFunction(n),this._value=r,e=this,t(function(t){return e._value=n(e._value,t),e.publish(e._value)})},n}(Observable),EventStream=function(t){function n(){return this.filter=__bind(this.filter,this),this.later=__bind(this.later,this),this.extract=__bind(this.extract,this),this.map=__bind(this.map,this),this.merge=__bind(this.merge,this),this.addEvent=__bind(this.addEvent,this),n.__super__.constructor.apply(this,arguments)}return __extends(n,t),n.prototype._init=function(t){return isFunction(t)?t(this.publish):void 0},n.prototype.addEvent=function(t){return t(this.publish)},n.prototype.merge=function(t){var r;return r=this,new n(function(n){return r.subscribe(function(t){return n(t)}),t.subscribe(function(t){return n(t)})})},n.prototype.map=function(t){var r;return r=this,new n(function(n){return applyMapping(r.subscribe,n,t)})},n.prototype.extract=function(t){var r;return r=this,new n(function(n){return applyExtraction(r.subscriber,n,t)})},n.prototype.later=function(t,n,r){var e,i,o;return i=this,e=function(){return i.publish(n)},o=setTimeout(e,t),isFunction(r)?r(function(){return clearTimeout(o)}):void 0},n.prototype.filter=function(t,r){var e;return e=this,new n(function(n){return applyFilter(e.subscribe,n,t,r)})},n}(Observable),applyMapping=function(t,n,r){return assertNotNull(t,n,r),isFunction(r)?t(function(t){return n(r(t))}):isString(r)||isNumber(r)?t(function(){return n(r)}):void 0},applyFilter=function(t,n,r){return assertNotNull(t,n,r),isFunction(r)?t(function(t){return r(t)?n(t):void 0}):isObject(r)?t(function(t){return needlesInHaystack(r,t)?n(t):void 0}):void 0},applyExtraction=function(t,n,r){return isFunction(r)?t(function(t){return n(r(t))}):isString(r)?t(function(t){return n(t[r])}):void 0},needlesInHaystack=function(t,n){var r,e,i,o,s,u;r=!0;for(e in t)if(u=t[e],isObject(u)){o=t[e];for(i in u)if(s=u[i],s!==n[e][i]){r=!1;break}}else if(u!==n[e]){r=!1;break}return r},assertFunction=function(t){if(!isFunction(t))throw new Error("variable must be function -> "+t)},assertString=function(t){if(!isString(t))throw new Error("variable must be String -> "+t)},assertDomNode=function(t){if(!isDomNode(t))throw new Error("variable must be html element ->"+t)},assertNotNull=function(t){var n,r,e,i;for(isArray(t)||(t=[t]),i=[],r=0,e=t.length;e>r;r++){if(n=t[r],!n)throw new Error("variable can not be null");i.push(void 0)}return i},isObject=function(t){return!!t&&t.constructor===Object},isNumber=function(t){return"number"==typeof t||t instanceof Number},isDomNode=function(t){return t.hasOwnProperty("nodeType")},isString=function(t){return"string"==typeof t||t instanceof String},isArray=function(t){return"[object Array]"===Object.prototype.toString.call(t)},isFunction=function(t){return t instanceof Function},fromDomEvent=function(t,n){return assertNotNull(arguments),assertDomNode(n),isArray(t)||(t=[t]),new EventStream(function(r){var e,i,o,s;for(s=[],i=0,o=t.length;o>i;i++)e=t[i],s.push(n.addEventListener(e,function(t){return r(t)}));return s})},window.trx={createStream:function(t){return new EventStream(t)},fromDomEvent:fromDomEvent,createProperty:function(t,n,r){return new Property(t,n,r)}};
+var EventStream, Observable, Property, addEventListener, applyExtraction, applyFilter, applyMapping, assertDomNode, assertFunction, assertNotNull, assertString, fromDomEvent, inArray, isArray, isDomNode, isFunction, isNumber, isObject, isString, needlesInHaystack,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Observable = (function() {
+  function Observable() {
+    this.publish = __bind(this.publish, this);
+    this.subscribe = __bind(this.subscribe, this);
+    this._subscribers = [];
+    this._init.apply(this, arguments);
+  }
+
+  Observable.prototype.subscribe = function(subscriber) {
+    this._subscribers.push(subscriber);
+    return this;
+  };
+
+  Observable.prototype.publish = function(e) {
+    var s, _i, _len, _ref;
+    _ref = this._subscribers;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      s = _ref[_i];
+      s(e);
+    }
+    return this;
+  };
+
+  return Observable;
+
+})();
+
+Property = (function(_super) {
+  __extends(Property, _super);
+
+  function Property() {
+    return Property.__super__.constructor.apply(this, arguments);
+  }
+
+  Property.prototype._init = function(subscribe, aggregator, initialValue) {
+    var self;
+    if (initialValue == null) {
+      initialValue = 0;
+    }
+    assertFunction(subscribe);
+    assertFunction(aggregator);
+    this._value = initialValue;
+    self = this;
+    return subscribe(function(e) {
+      self._value = aggregator(self._value, e);
+      return self.publish(self._value);
+    });
+  };
+
+  return Property;
+
+})(Observable);
+
+EventStream = (function(_super) {
+  __extends(EventStream, _super);
+
+  function EventStream() {
+    this.filter = __bind(this.filter, this);
+    this.later = __bind(this.later, this);
+    this.extract = __bind(this.extract, this);
+    this.map = __bind(this.map, this);
+    this.merge = __bind(this.merge, this);
+    this.addEvent = __bind(this.addEvent, this);
+    return EventStream.__super__.constructor.apply(this, arguments);
+  }
+
+  EventStream.prototype._init = function(eventCallback) {
+    if (isFunction(eventCallback)) {
+      return eventCallback(this.publish);
+    }
+  };
+
+  EventStream.prototype.addEvent = function(eventCallback) {
+    return eventCallback(this.publish);
+  };
+
+  EventStream.prototype.merge = function(stream) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      self.subscribe(function(e) {
+        return cb(e);
+      });
+      return stream.subscribe(function(e) {
+        return cb(e);
+      });
+    });
+  };
+
+  EventStream.prototype.toProperty = function(aggregator, initialValue) {
+    return new Property(this.subscribe, aggregator, initialValue);
+  };
+
+  EventStream.prototype.map = function(mapping) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      return applyMapping(self.subscribe, cb, mapping);
+    });
+  };
+
+  EventStream.prototype.extract = function(extraction) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      return applyExtraction(self.subscriber, cb, extraction);
+    });
+  };
+
+  EventStream.prototype.later = function(delay, value, cancelingEvent) {
+    var callback, self, timeoutId;
+    self = this;
+    callback = function() {
+      return self.publish(value);
+    };
+    timeoutId = setTimeout(callback, delay);
+    if (isFunction(cancelingEvent)) {
+      return cancelingEvent(function() {
+        return clearTimeout(timeoutId);
+      });
+    }
+  };
+
+  EventStream.prototype.filter = function(condition, value) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      return applyFilter(self.subscribe, cb, condition, value);
+    });
+  };
+
+  return EventStream;
+
+})(Observable);
+
+applyMapping = function(subscriber, cb, mapping) {
+  assertNotNull(subscriber, cb, mapping);
+  if (isFunction(mapping)) {
+    return subscriber(function(e) {
+      return cb(mapping(e));
+    });
+  } else if (isString(mapping) || isNumber(mapping)) {
+    return subscriber(function(e) {
+      return cb(mapping);
+    });
+  }
+};
+
+applyFilter = function(subscriber, cb, condition, value) {
+  assertNotNull(subscriber, cb, condition);
+  if (isString(condition)) {
+    assertNotNull(value);
+    if (isString(value)) {
+      return subscriber(function(e) {
+        if (e[condition] === value) {
+          return cb(e);
+        }
+      });
+    } else if (isArray(value)) {
+      return subscriber(function(e) {
+        if (inArray(e[condition], value)) {
+          return cb(e);
+        }
+      });
+    }
+  } else if (isFunction(condition)) {
+    return subscriber(function(e) {
+      if (condition(e)) {
+        return cb(e);
+      }
+    });
+  } else if (isObject(condition)) {
+    return subscriber(function(e) {
+      if (needlesInHaystack(condition, e)) {
+        return cb(e);
+      }
+    });
+  }
+};
+
+applyExtraction = function(subscriber, cb, extraction) {
+  if (isFunction(extraction)) {
+    return subscriber(function(e) {
+      return cb(extraction(e));
+    });
+  } else if (isString(extraction)) {
+    return subscriber(function(e) {
+      return cb(e[extraction]);
+    });
+  }
+};
+
+inArray = function(needle, haystack) {
+  var i, inHaystack, _i, _len;
+  console.log(needle);
+  assertNotNull(needle);
+  assertArray(haystack);
+  inHaystack = false;
+  for (_i = 0, _len = haystack.length; _i < _len; _i++) {
+    i = haystack[_i];
+    if (i === needle) {
+      inHaystack = true;
+      break;
+    }
+  }
+  return inHaystack;
+};
+
+needlesInHaystack = function(obj, haystack) {
+  var isEqual, k, sk, subHaystack, sv, v;
+  isEqual = true;
+  for (k in obj) {
+    v = obj[k];
+    if (isObject(v)) {
+      subHaystack = obj[k];
+      for (sk in v) {
+        sv = v[sk];
+        if (sv !== haystack[k][sk]) {
+          isEqual = false;
+          break;
+        }
+      }
+    } else {
+      if (v !== haystack[k]) {
+        isEqual = false;
+        break;
+      }
+    }
+  }
+  return isEqual;
+};
+
+assertFunction = function(func) {
+  if (!isFunction(func)) {
+    throw new Error('variable must be function -> ' + func);
+  }
+};
+
+assertString = function(obj) {
+  if (!isString(obj)) {
+    throw new Error('variable must be String -> ' + obj);
+  }
+};
+
+assertDomNode = function(domNode) {
+  if (!isDomNode(domNode)) {
+    throw new Error('variable must be html element ->' + domNode);
+  }
+};
+
+assertNotNull = function(args) {
+  var a, _i, _len, _results;
+  if (!isArray(args)) {
+    args = [args];
+  }
+  _results = [];
+  for (_i = 0, _len = args.length; _i < _len; _i++) {
+    a = args[_i];
+    if (!a) {
+      throw new Error('variable can not be null');
+    } else {
+      _results.push(void 0);
+    }
+  }
+  return _results;
+};
+
+isObject = function(obj) {
+  return !!obj && (obj.constructor === Object);
+};
+
+isNumber = function(obj) {
+  return typeof obj === 'number' || obj instanceof Number;
+};
+
+isDomNode = function(domNode) {
+  return domNode.hasOwnProperty('nodeType');
+};
+
+isString = function(obj) {
+  return typeof obj === 'string' || obj instanceof String;
+};
+
+isArray = function(obj) {
+  return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
+isFunction = function(obj) {
+  return obj instanceof Function;
+};
+
+addEventListener = function(obj, evt, fnc) {
+  if (obj.addEventListener) {
+    obj.addEventListener(evt, fnc, false);
+    true;
+  } else if (obj.attachEvent) {
+    obj.attachEvent('on' + evt, fnc);
+  } else {
+    evt = 'on' + evt;
+    if (typeof obj[evt] === 'function') {
+      fnc = (function(f1, f2) {
+        return function() {
+          f1.apply(this["arguments"]);
+          return f2.apply(this["arguments"]);
+        };
+      })(obj[evt], fnc);
+    }
+    obj[evt] = fnc;
+    true;
+  }
+  return false;
+};
+
+fromDomEvent = function(eventNames, domNodes) {
+  assertNotNull(arguments);
+  if (!isArray(domNodes)) {
+    domNodes = [domNodes];
+  }
+  if (!isArray(eventNames)) {
+    eventNames = [eventNames];
+  }
+  return new EventStream(function(signal) {
+    var domNode, eventName, sNode, selected, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = domNodes.length; _i < _len; _i++) {
+      domNode = domNodes[_i];
+      if (isString(domNode)) {
+        selected = document.querySelectorAll(domNode);
+      } else {
+        selected = [domNode];
+      }
+      _results.push((function() {
+        var _j, _len1, _results1;
+        _results1 = [];
+        for (_j = 0, _len1 = selected.length; _j < _len1; _j++) {
+          sNode = selected[_j];
+          _results1.push((function() {
+            var _k, _len2, _results2;
+            _results2 = [];
+            for (_k = 0, _len2 = eventNames.length; _k < _len2; _k++) {
+              eventName = eventNames[_k];
+              _results2.push(addEventListener(sNode, eventName, function(e) {
+                return signal(e);
+              }));
+            }
+            return _results2;
+          })());
+        }
+        return _results1;
+      })());
+    }
+    return _results;
+  });
+};
+
+window.trx = {
+  createStream: function(eventCallback) {
+    return new EventStream(eventCallback);
+  },
+  fromDomEvent: fromDomEvent,
+  createProperty: function(subscribe, aggregator, initialValue) {
+    return new Property(subscribe, aggregator, initialValue);
+  }
+};

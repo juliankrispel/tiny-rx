@@ -12,8 +12,28 @@ Include in your html file
 <script src="node_modules/tiny-rx/dist/trx.js"></script>
 ```
 
-##Using trx
-At the moment you can create eventstreams, filter them, and subscribe to them. Filtering an eventstream returns a new eventstream that subscribes to the filtered one, that's pretty much it. But just with that alone a lot can be achieved:
+##Getting Started
+Tiny-rx is a minimal set of tools to help you avoiding callback hell. With `EventStream`'s you can make sense of event flow and get rid of state.
+
+1. Create an EventStream
+You can create a stream pretty much from anything, but the easiest way is to use a shorthand method like fromDomEvent
+```javascript
+var clickEvents = trx.fromDomEvent('click', document.body);
+```
+
+2. Subscribing to an EventStream
+To react to your events, just use the subscribe method
+```javascript
+clickEvents.subscribe(function(e){
+    alert('Hey, you clicked on my body');
+})
+```
+Pretty standard ey, now let's see what tiny-rx can really do
+
+3. Organising EventStreams
+With tiny-rx you have tools to help you to map and filter your events, extract properties etc. Let's say we want to listen to certain
+
+
 
 ```javascript
 var clickEvents = trx.fromDomEvent('click', document.body);
@@ -36,4 +56,4 @@ numberButtonPressed.subscribe(function(e){
 ```
 
 ###Credit where credit is due
-Trx Inspired by [bacon.js](https://github.com/baconjs/bacon.js/tree/master) and [RxJS](https://github.com/Reactive-Extensions/RxJS) and the amazing useful concepts these libraries make use of.
+Trx is inspired by [bacon.js](https://github.com/baconjs/bacon.js/tree/master) and [RxJS](https://github.com/Reactive-Extensions/RxJS) and the beautifully simple concepts of [frp](http://en.wikipedia.org/wiki/Functional_reactive_programming).

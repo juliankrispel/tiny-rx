@@ -41,6 +41,9 @@ class EventStream extends Observable
             )
         )
 
+    toProperty: (aggregator, initialValue) ->
+        new Property( @subscribe, aggregator, initialValue )
+
     map: (mapping) =>
         self = @
         new EventStream((cb)->
@@ -83,7 +86,19 @@ applyMapping = (subscriber, cb, mapping) ->
 
 applyFilter = (subscriber, cb, condition, value) ->
     assertNotNull(subscriber, cb, condition)
-    if(isFunction(condition))
+    if(isString(condition))
+        assertNotNull(value)
+        if(isString(value))
+            subscriber((e)->
+                cb(e) if e[condition] == value
+            )
+        else if(isArray(value))
+            subscriber((e)->
+                cb(e) if inArray(e[condition], value)
+            )
+
+
+    else if(isFunction(condition))
         subscriber((e)->
             cb(e) if condition(e)
         )
@@ -102,6 +117,17 @@ applyExtraction = (subscriber, cb, extraction) ->
         subscriber((e)->
             cb(e[extraction])
         )
+
+inArray = (needle, haystack) ->
+    console.log(needle)
+    assertNotNull(needle)
+    assertArray(haystack)
+    inHaystack = false
+    for i in haystack
+        if(i == needle)
+            inHaystack = true
+            break
+    inHaystack
 
 needlesInHaystack = (obj, haystack) ->
     isEqual = true
@@ -128,8 +154,7 @@ assertDomNode = (domNode) ->
     throw new Error 'variable must be html element ->' + domNode unless isDomNode(domNode)
 
 assertNotNull = (args) ->
-    unless isArray(args)
-        args = [args]
+    args = [args] unless isArray(args)
     for a in args
         throw new Error 'variable can not be null' unless a
 
@@ -151,16 +176,46 @@ isArray = (obj) ->
 isFunction = (obj) ->
     obj instanceof Function
 
-fromDomEvent = (eventNames, domNode)->
+addEventListener = (obj, evt, fnc) ->
+    # W3C model
+    if (obj.addEventListener) 
+        obj.addEventListener(evt, fnc, false)
+        true
+    # Microsoft model
+    else if (obj.attachEvent) 
+        obj.attachEvent('on' + evt, fnc)
+
+    # Browser don't support W3C or MSFT model, go on with traditional
+    else 
+        evt = 'on'+evt
+        if(typeof obj[evt] == 'function')
+            ## Object already has a function on traditional
+            ## Let's wrap it with our own function inside another function
+            fnc = ((f1,f2)->
+                 ()->
+                    f1.apply(this.arguments)
+                    f2.apply(this.arguments)
+            )(obj[evt], fnc)
+        obj[evt] = fnc
+        true
+    false
+
+fromDomEvent = (eventNames, domNodes)->
     assertNotNull(arguments)
-    assertDomNode(domNode)
-    unless isArray(eventNames)
-        eventNames = [eventNames]
+    domNodes = [domNodes] unless isArray(domNodes)
+    eventNames = [eventNames] unless isArray(eventNames)
+        
     new EventStream((signal)->
-        for eventName in eventNames
-            domNode.addEventListener(eventName, (e)->
-                signal(e)
-            )
+        for domNode in domNodes
+            if(isString(domNode))
+                selected = document.querySelectorAll(domNode) 
+            else
+                selected = [domNode]
+            for sNode in selected
+                for eventName in eventNames
+                    addEventListener(sNode, eventName, (e)->
+                        signal(e)
+                    )
     )
 
 window.trx = {
