@@ -1,16 +1,34 @@
-class EventStream
-    constructor: (eventCallback) ->
-        @_subscribers = [] 
-        if isFunction(eventCallback)
-            eventCallback(@publish)
+class Observable
+    constructor: () ->
+        @_subscribers = []
+        @_init.apply(@, arguments)
 
     subscribe: (subscriber) =>
         @_subscribers.push(subscriber)
         @
 
+    publish: (e) =>
+        s(e) for s in @_subscribers
+        @
+
+class Property extends Observable
+    _init: (subscribe, aggregator, initialValue = 0)->
+        assertFunction(subscribe)
+        assertFunction(aggregator)
+        @_value = initialValue
+        self = @
+        subscribe((e)->
+            self._value = aggregator(self._value, e)
+            self.publish(self._value)
+        )
+
+class EventStream extends Observable
+    _init: (eventCallback) ->
+        if isFunction(eventCallback)
+            eventCallback(@publish)
+
     addEvent: (eventCallback) =>
-        eventCallback(@pconjs
-            ublish)
+        eventCallback(@publish)
 
     merge: (stream) =>
         self = @
@@ -26,7 +44,13 @@ class EventStream
     map: (mapping) =>
         self = @
         new EventStream((cb)->
-            applyMapping(self.subscriber, cb, mapping)
+            applyMapping(self.subscribe, cb, mapping)
+        )
+
+    extract: (extraction) =>
+        self = @
+        new EventStream((cb)->
+            applyExtraction(self.subscriber, cb, extraction)
         )
 
     later: (delay, value, cancelingEvent) =>
@@ -40,38 +64,83 @@ class EventStream
                 clearTimeout(timeoutId)
             )
 
-    filter: (condition) =>
+    filter: (condition, value) =>
         self = @
         new EventStream((cb)->
-            self.subscribe((e)->
-                cb(e) if(condition(e))
-            )
+            applyFilter(self.subscribe, cb, condition, value)
         )
 
-    publish: (e) =>
-        s(e) for s in @_subscribers
-
 applyMapping = (subscriber, cb, mapping) ->
+    assertNotNull(subscriber, cb, mapping)
     if(isFunction(mapping))
         subscriber((e)->
             cb(mapping(e))
         )
-    else if(isString(mapping))
+    else if(isString(mapping) or isNumber(mapping))
         subscriber((e)->
-            if(e.hasOwnProperty(mapping))
-                cb(e[mapping])
+            cb(mapping)
         )
 
+applyFilter = (subscriber, cb, condition, value) ->
+    assertNotNull(subscriber, cb, condition)
+    if(isFunction(condition))
+        subscriber((e)->
+            cb(e) if condition(e)
+        )
+    else if(isObject(condition))
+        subscriber((e)->
+            cb(e) if needlesInHaystack(condition, e)
+        )
+
+applyExtraction = (subscriber, cb, extraction) ->
+    if(isFunction(extraction))
+        subscriber((e)->
+            cb(extraction(e))
+        )
+
+    else if(isString(extraction))
+        subscriber((e)->
+            cb(e[extraction])
+        )
+
+needlesInHaystack = (obj, haystack) ->
+    isEqual = true
+    for k, v of obj
+        if(isObject(v))
+            subHaystack = obj[k]
+            for sk, sv of v
+                unless sv == haystack[k][sk]
+                    isEqual = false
+                    break
+        else
+            unless v == haystack[k]
+                isEqual = false
+                break
+    isEqual
+
+assertFunction = (func) ->
+    throw new Error 'variable must be function -> ' + func unless isFunction(func)
+
+assertString = (obj) ->
+    throw new Error 'variable must be String -> ' + obj unless isString(obj)
+
+assertDomNode = (domNode) ->
+    throw new Error 'variable must be html element ->' + domNode unless isDomNode(domNode)
+
 assertNotNull = (args) ->
+    unless isArray(args)
+        args = [args]
     for a in args
         throw new Error 'variable can not be null' unless a
 
-assertDomNode = (domNode) ->
-    unless domNode.hasOwnProperty('nodeType')
-        throw new Error 'variable does not contain html element'
-
 isObject = (obj) ->
-    !!a && (a.constructor == Object)
+    !!obj && (obj.constructor == Object)
+
+isNumber = (obj) ->
+    typeof obj == 'number' || obj instanceof Number
+
+isDomNode = (domNode) ->
+    domNode.hasOwnProperty('nodeType')
 
 isString = (obj) ->
     typeof obj == 'string' || obj instanceof String
@@ -97,5 +166,9 @@ fromDomEvent = (eventNames, domNode)->
 window.trx = {
     createStream: (eventCallback) ->
         new EventStream(eventCallback)
+
     fromDomEvent: fromDomEvent
+
+    createProperty: ( subscribe, aggregator, initialValue ) ->
+        new Property( subscribe, aggregator, initialValue )
 }
