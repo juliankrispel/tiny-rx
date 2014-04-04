@@ -1,13 +1,17 @@
-var EventStream, assertDomNode, assertNotNull, fromDomEvent, isArray,
+var EventStream, assertDomNode, assertNotNull, fromDomEvent, isArray, isFunction,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 EventStream = (function() {
   function EventStream(eventCallback) {
-    this._publish = __bind(this._publish, this);
+    this.publish = __bind(this.publish, this);
     this.filter = __bind(this.filter, this);
+    this.later = __bind(this.later, this);
     this.addEvent = __bind(this.addEvent, this);
+    this.subscribe = __bind(this.subscribe, this);
     this._subscribers = [];
-    eventCallback(this._publish);
+    if (isFunction(eventCallback)) {
+      eventCallback(this.publish);
+    }
   }
 
   EventStream.prototype.subscribe = function(subscriber) {
@@ -16,7 +20,21 @@ EventStream = (function() {
   };
 
   EventStream.prototype.addEvent = function(eventCallback) {
-    return eventCallback(this._publish);
+    return eventCallback(this.publish);
+  };
+
+  EventStream.prototype.later = function(delay, value, cancelEvent) {
+    var callback, self, timeoutId;
+    self = this;
+    callback = function() {
+      return self.publish(value);
+    };
+    timeoutId = setTimeout(callback, delay);
+    if (isFunction(cancelEvent)) {
+      return cancelEvent(function() {
+        return clearTimeout(timeoutId);
+      });
+    }
   };
 
   EventStream.prototype.filter = function(condition) {
@@ -31,7 +49,7 @@ EventStream = (function() {
     });
   };
 
-  EventStream.prototype._publish = function(e) {
+  EventStream.prototype.publish = function(e) {
     var s, _i, _len, _ref, _results;
     _ref = this._subscribers;
     _results = [];
@@ -68,6 +86,10 @@ assertDomNode = function(domNode) {
 
 isArray = function(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
+};
+
+isFunction = function(obj) {
+  return obj instanceof Function;
 };
 
 fromDomEvent = function(eventNames, domNode) {

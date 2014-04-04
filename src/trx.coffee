@@ -1,14 +1,26 @@
 class EventStream
     constructor: (eventCallback) ->
         @_subscribers = [] 
-        eventCallback(@_publish)
+        if isFunction(eventCallback)
+            eventCallback(@publish)
 
-    subscribe: (subscriber)->
+    subscribe: (subscriber) =>
         @_subscribers.push(subscriber)
         @
 
     addEvent: (eventCallback) =>
-        eventCallback(@_publish)
+        eventCallback(@publish)
+
+    later: (delay, value, cancelEvent) =>
+        self = @
+        callback = ->
+            self.publish(value)
+
+        timeoutId = setTimeout(callback, delay)
+        if(isFunction(cancelEvent))
+            cancelEvent(()->
+                clearTimeout(timeoutId)
+            )
 
     filter: (condition) =>
         self = @
@@ -18,9 +30,8 @@ class EventStream
             )
         )
 
-    _publish: (e) =>
+    publish: (e) =>
         s(e) for s in @_subscribers
-
 
 assertNotNull = (args) ->
     for a in args
@@ -32,6 +43,9 @@ assertDomNode = (domNode) ->
 
 isArray = (obj) ->
     Object.prototype.toString.call( obj ) == '[object Array]'
+
+isFunction = (obj) ->
+    obj instanceof Function
 
 fromDomEvent = (eventNames, domNode)->
     assertNotNull(arguments)
@@ -50,4 +64,3 @@ window.trx = {
         new EventStream(eventCallback)
     fromDomEvent: fromDomEvent
 }
-
