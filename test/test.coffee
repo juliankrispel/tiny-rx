@@ -34,30 +34,46 @@ prev = buttonKeyup.filter({keyCode: 13, target: {nodeName: 'BUTTON'}})
 #)
 
 
-number = trx.fromDomEvent('click', '.number').map(
-    (e)->
-        parseInt(e.target.textContent)
-)
-displayNumber = number.toProperty((memo, e)->
-    memo + e
+buttonClick = trx.fromDomEvent('click', 'button').map(
+    (e)-> e.target.textContent
 )
 
-display = document.querySelector('.counter')
-helement = document.querySelector('.history')
-combination = document.querySelector('.combination')
+$display = document.querySelector('.display')
 
-history = trx.createProperty(number.subscribe, (history, e)->
-    history.shift() if(history.length > 4)
-    history.push e
-    history
-, [])
+buttonHistory = buttonClick.createHistory()
 
-displayNumber.subscribe((number)->
-    display.textContent = number
+expression = buttonClick.createProperty((memo, e)->
+    if(e == '=')
+        memo
+    else
+        memo + '' + e
+, '')
+
+buttonClick.subscribe((e)->
+    if e == '='
+        result = parseExpression(expression.value())
+        expression.value(result)
+        $display.textContent = result
+    else 
+        $display.textContent = expression.value()
 )
 
-history.subscribe((h)->
-    helement.textContent = h.join(', ')
-    if(h.join('') == '12345')
-        combination.textContent = 'Combination Unlocked mate'
-)
+parseExpression = (expression) ->
+    splitExpression = expression.match(/(?:[0-9]+)|[\+\-\*\/]/gi);
+    console.log splitExpression
+    processExpression(splitExpression)
+
+processExpression = (tokens) ->
+    result = ''
+    switch tokens[1]
+        when '-' then result = +tokens[0] - +tokens[2]
+        when '+' then result = +tokens[0] + +tokens[2]
+        when '/' then result = +tokens[0] / +tokens[2]
+        when '*' then result = +tokens[0] * +tokens[2]
+    if(tokens.length > 3)
+        tokens.splice(0, 3)
+
+        tokens.unshift(result)
+        processExpression(tokens)
+    else
+        result

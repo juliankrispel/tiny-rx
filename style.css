@@ -1,0 +1,28 @@
+body{
+    font-size: 14px;
+    font-family: Arial;
+}
+
+button{
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    float: left;
+    border: none;
+    background: #333;
+    color: white;
+}
+
+.display{
+    font-size: 30px;
+}
+
+.row{
+    display: block;
+}
+
+.row:after, .row:before{
+    content: ' ';
+    display: table;
+    clear: both;
+}

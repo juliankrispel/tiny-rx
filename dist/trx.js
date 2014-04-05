@@ -34,6 +34,8 @@ Property = (function(_super) {
   __extends(Property, _super);
 
   function Property() {
+    this.value = __bind(this.value, this);
+    this.reset = __bind(this.reset, this);
     return Property.__super__.constructor.apply(this, arguments);
   }
 
@@ -45,11 +47,23 @@ Property = (function(_super) {
     assertFunction(subscribe);
     assertFunction(aggregator);
     this._value = initialValue;
+    this._initialValue = initialValue;
     self = this;
     return subscribe(function(e) {
       self._value = aggregator(self._value, e);
       return self.publish(self._value);
     });
+  };
+
+  Property.prototype.reset = function() {
+    return this._value = this.initialValue;
+  };
+
+  Property.prototype.value = function(set) {
+    if (set) {
+      this._value = set;
+    }
+    return this._value;
   };
 
   return Property;
@@ -64,6 +78,7 @@ EventStream = (function(_super) {
     this.later = __bind(this.later, this);
     this.extract = __bind(this.extract, this);
     this.map = __bind(this.map, this);
+    this.createHistory = __bind(this.createHistory, this);
     this.merge = __bind(this.merge, this);
     this.addEvent = __bind(this.addEvent, this);
     return EventStream.__super__.constructor.apply(this, arguments);
@@ -92,7 +107,20 @@ EventStream = (function(_super) {
     });
   };
 
-  EventStream.prototype.toProperty = function(aggregator, initialValue) {
+  EventStream.prototype.createHistory = function(steps) {
+    if (steps == null) {
+      steps = 100;
+    }
+    return this.createProperty(function(history, e) {
+      if (history.length > steps) {
+        history.shift();
+      }
+      history.push(e);
+      return history;
+    }, []);
+  };
+
+  EventStream.prototype.createProperty = function(aggregator, initialValue) {
     return new Property(this.subscribe, aggregator, initialValue);
   };
 

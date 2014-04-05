@@ -16,11 +16,17 @@ class Property extends Observable
         assertFunction(subscribe)
         assertFunction(aggregator)
         @_value = initialValue
+        @_initialValue = initialValue
         self = @
         subscribe((e)->
             self._value = aggregator(self._value, e)
             self.publish(self._value)
         )
+
+    reset: () => @_value = @initialValue
+    value: (set) =>
+        @_value = set if set
+        @_value
 
 class EventStream extends Observable
     _init: (eventCallback) ->
@@ -41,7 +47,14 @@ class EventStream extends Observable
             )
         )
 
-    toProperty: (aggregator, initialValue) ->
+    createHistory: (steps = 100) =>
+        @createProperty((history, e) ->
+            history.shift() if(history.length > steps)
+            history.push e
+            history
+        , [])
+
+    createProperty: (aggregator, initialValue) ->
         new Property( @subscribe, aggregator, initialValue )
 
     map: (mapping) =>
