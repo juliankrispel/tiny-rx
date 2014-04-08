@@ -49,10 +49,10 @@ class Observable
         )
 
     createHistory: (steps = 100) =>
-        @createProperty((history, e) ->
-            history.shift() if(history.length > steps)
-            history.push e
-            history
+        @createProperty((historyAsArray, e) ->
+            historyAsArray.shift() if(historyAsArray.length > steps)
+            historyAsArray.push e
+            historyAsArray
         , [])
 
     createProperty: (aggregator, initialValue) ->
@@ -243,14 +243,21 @@ fromDomEvent = (eventNames, domNodes)->
                     )
     )
 
-
-
 trx = {
+    # Attach Classes for test assertions and after all, 
+    # why the fuck not
+    _EventStream: EventStream
+    _Property: Property
+
+    # Create a stream with or without a callback
     createStream: (eventCallback) ->
         new EventStream(eventCallback)
 
+    # Create a stream from a dom event
     fromDomEvent: fromDomEvent
 
+    # Create an empty property or one that subscribes to an 
+    # Observable or an EventStream
     createProperty: ( subscribe, aggregator, initialValue ) ->
         new Property( subscribe, aggregator, initialValue )
 }

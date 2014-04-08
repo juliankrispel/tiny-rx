@@ -86,12 +86,12 @@ Observable = (function() {
     if (steps == null) {
       steps = 100;
     }
-    return this.createProperty(function(history, e) {
-      if (history.length > steps) {
-        history.shift();
+    return this.createProperty(function(historyAsArray, e) {
+      if (historyAsArray.length > steps) {
+        historyAsArray.shift();
       }
-      history.push(e);
-      return history;
+      historyAsArray.push(e);
+      return historyAsArray;
     }, []);
   };
 
@@ -400,6 +400,8 @@ fromDomEvent = function(eventNames, domNodes) {
 };
 
 trx = {
+  _EventStream: EventStream,
+  _Property: Property,
   createStream: function(eventCallback) {
     return new EventStream(eventCallback);
   },
