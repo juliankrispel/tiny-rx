@@ -243,7 +243,9 @@ fromDomEvent = (eventNames, domNodes)->
                     )
     )
 
-window.trx = {
+
+
+trx = {
     createStream: (eventCallback) ->
         new EventStream(eventCallback)
 
@@ -252,3 +254,8 @@ window.trx = {
     createProperty: ( subscribe, aggregator, initialValue ) ->
         new Property( subscribe, aggregator, initialValue )
 }
+
+if typeof module != undefined
+    module.exports = trx
+else
+    window.trx = trx
