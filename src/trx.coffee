@@ -11,21 +11,71 @@ class Observable
         s(e) for s in @_subscribers
         @
 
+    map: (mapping) =>
+        self = @
+        new EventStream((cb)->
+            applyMapping(self.subscribe, cb, mapping)
+        )
+
+    extract: (extraction) =>
+        self = @
+        new EventStream((cb)->
+            applyExtraction(self.subscribe, cb, extraction)
+        )
+
+    later: (delay, value, cancelingEvent) =>
+        self = @
+        callback = ->
+            self.publish(value)
+
+        timeoutId = setTimeout(callback, delay)
+        if(isFunction(cancelingEvent))
+            cancelingEvent(()->
+                clearTimeout(timeoutId)
+            )
+
+    filter: (condition, value) =>
+        self = @
+        new EventStream((cb)->
+            applyFilter(self.subscribe, cb, condition, value)
+        )
+
+    truethy: () =>
+        self = @
+        new EventStream((cb)->
+            self.subscribe((e)->
+                cb(e) if e
+            )
+        )
+
+    createHistory: (steps = 100) =>
+        @createProperty((history, e) ->
+            history.shift() if(history.length > steps)
+            history.push e
+            history
+        , [])
+
+    createProperty: (aggregator, initialValue) ->
+        new Property( @subscribe, aggregator, initialValue )
+
+
+
 class Property extends Observable
     _init: (subscribe, aggregator, initialValue = 0)->
-        assertFunction(subscribe)
-        assertFunction(aggregator)
-        @_value = initialValue
-        @_initialValue = initialValue
-        self = @
-        subscribe((e)->
-            self._value = aggregator(self._value, e)
-            self.publish(self._value)
-        )
+        @_value = @_initialValue = initialValue
+
+        if(isFunction(subscribe) && isFunction(aggregator))
+            self = @
+            subscribe((e)->
+                self._value = aggregator(self._value, e)
+                self.publish(self._value)
+            )
 
     reset: () => @_value = @initialValue
     value: (set) =>
-        @_value = set if set
+        if(set != undefined)
+            @_value = set
+            @publish(@_value)
         @_value
 
 class EventStream extends Observable
@@ -47,44 +97,6 @@ class EventStream extends Observable
             )
         )
 
-    createHistory: (steps = 100) =>
-        @createProperty((history, e) ->
-            history.shift() if(history.length > steps)
-            history.push e
-            history
-        , [])
-
-    createProperty: (aggregator, initialValue) ->
-        new Property( @subscribe, aggregator, initialValue )
-
-    map: (mapping) =>
-        self = @
-        new EventStream((cb)->
-            applyMapping(self.subscribe, cb, mapping)
-        )
-
-    extract: (extraction) =>
-        self = @
-        new EventStream((cb)->
-            applyExtraction(self.subscriber, cb, extraction)
-        )
-
-    later: (delay, value, cancelingEvent) =>
-        self = @
-        callback = ->
-            self.publish(value)
-
-        timeoutId = setTimeout(callback, delay)
-        if(isFunction(cancelingEvent))
-            cancelingEvent(()->
-                clearTimeout(timeoutId)
-            )
-
-    filter: (condition, value) =>
-        self = @
-        new EventStream((cb)->
-            applyFilter(self.subscribe, cb, condition, value)
-        )
 
 applyMapping = (subscriber, cb, mapping) ->
     assertNotNull(subscriber, cb, mapping)
@@ -169,7 +181,7 @@ assertDomNode = (domNode) ->
 assertNotNull = (args) ->
     args = [args] unless isArray(args)
     for a in args
-        throw new Error 'variable can not be null' unless a
+        throw new Error 'variable can not be null' if a == null
 
 isObject = (obj) ->
     !!obj && (obj.constructor == Object)

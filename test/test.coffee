@@ -70,9 +70,9 @@ processExpression = (tokens) ->
         when '+' then result = +tokens[0] + +tokens[2]
         when '/' then result = +tokens[0] / +tokens[2]
         when '*' then result = +tokens[0] * +tokens[2]
+
     if(tokens.length > 3)
         tokens.splice(0, 3)
-
         tokens.unshift(result)
         processExpression(tokens)
     else

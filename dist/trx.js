@@ -5,6 +5,12 @@ var EventStream, Observable, Property, addEventListener, applyExtraction, applyF
 
 Observable = (function() {
   function Observable() {
+    this.createHistory = __bind(this.createHistory, this);
+    this.truethy = __bind(this.truethy, this);
+    this.filter = __bind(this.filter, this);
+    this.later = __bind(this.later, this);
+    this.extract = __bind(this.extract, this);
+    this.map = __bind(this.map, this);
     this.publish = __bind(this.publish, this);
     this.subscribe = __bind(this.subscribe, this);
     this._subscribers = [];
@@ -26,6 +32,73 @@ Observable = (function() {
     return this;
   };
 
+  Observable.prototype.map = function(mapping) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      return applyMapping(self.subscribe, cb, mapping);
+    });
+  };
+
+  Observable.prototype.extract = function(extraction) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      return applyExtraction(self.subscribe, cb, extraction);
+    });
+  };
+
+  Observable.prototype.later = function(delay, value, cancelingEvent) {
+    var callback, self, timeoutId;
+    self = this;
+    callback = function() {
+      return self.publish(value);
+    };
+    timeoutId = setTimeout(callback, delay);
+    if (isFunction(cancelingEvent)) {
+      return cancelingEvent(function() {
+        return clearTimeout(timeoutId);
+      });
+    }
+  };
+
+  Observable.prototype.filter = function(condition, value) {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      return applyFilter(self.subscribe, cb, condition, value);
+    });
+  };
+
+  Observable.prototype.truethy = function() {
+    var self;
+    self = this;
+    return new EventStream(function(cb) {
+      return self.subscribe(function(e) {
+        if (e) {
+          return cb(e);
+        }
+      });
+    });
+  };
+
+  Observable.prototype.createHistory = function(steps) {
+    if (steps == null) {
+      steps = 100;
+    }
+    return this.createProperty(function(history, e) {
+      if (history.length > steps) {
+        history.shift();
+      }
+      history.push(e);
+      return history;
+    }, []);
+  };
+
+  Observable.prototype.createProperty = function(aggregator, initialValue) {
+    return new Property(this.subscribe, aggregator, initialValue);
+  };
+
   return Observable;
 
 })();
@@ -44,15 +117,14 @@ Property = (function(_super) {
     if (initialValue == null) {
       initialValue = 0;
     }
-    assertFunction(subscribe);
-    assertFunction(aggregator);
-    this._value = initialValue;
-    this._initialValue = initialValue;
-    self = this;
-    return subscribe(function(e) {
-      self._value = aggregator(self._value, e);
-      return self.publish(self._value);
-    });
+    this._value = this._initialValue = initialValue;
+    if (isFunction(subscribe) && isFunction(aggregator)) {
+      self = this;
+      return subscribe(function(e) {
+        self._value = aggregator(self._value, e);
+        return self.publish(self._value);
+      });
+    }
   };
 
   Property.prototype.reset = function() {
@@ -60,8 +132,9 @@ Property = (function(_super) {
   };
 
   Property.prototype.value = function(set) {
-    if (set) {
+    if (set !== void 0) {
       this._value = set;
+      this.publish(this._value);
     }
     return this._value;
   };
@@ -74,11 +147,6 @@ EventStream = (function(_super) {
   __extends(EventStream, _super);
 
   function EventStream() {
-    this.filter = __bind(this.filter, this);
-    this.later = __bind(this.later, this);
-    this.extract = __bind(this.extract, this);
-    this.map = __bind(this.map, this);
-    this.createHistory = __bind(this.createHistory, this);
     this.merge = __bind(this.merge, this);
     this.addEvent = __bind(this.addEvent, this);
     return EventStream.__super__.constructor.apply(this, arguments);
@@ -104,61 +172,6 @@ EventStream = (function(_super) {
       return stream.subscribe(function(e) {
         return cb(e);
       });
-    });
-  };
-
-  EventStream.prototype.createHistory = function(steps) {
-    if (steps == null) {
-      steps = 100;
-    }
-    return this.createProperty(function(history, e) {
-      if (history.length > steps) {
-        history.shift();
-      }
-      history.push(e);
-      return history;
-    }, []);
-  };
-
-  EventStream.prototype.createProperty = function(aggregator, initialValue) {
-    return new Property(this.subscribe, aggregator, initialValue);
-  };
-
-  EventStream.prototype.map = function(mapping) {
-    var self;
-    self = this;
-    return new EventStream(function(cb) {
-      return applyMapping(self.subscribe, cb, mapping);
-    });
-  };
-
-  EventStream.prototype.extract = function(extraction) {
-    var self;
-    self = this;
-    return new EventStream(function(cb) {
-      return applyExtraction(self.subscriber, cb, extraction);
-    });
-  };
-
-  EventStream.prototype.later = function(delay, value, cancelingEvent) {
-    var callback, self, timeoutId;
-    self = this;
-    callback = function() {
-      return self.publish(value);
-    };
-    timeoutId = setTimeout(callback, delay);
-    if (isFunction(cancelingEvent)) {
-      return cancelingEvent(function() {
-        return clearTimeout(timeoutId);
-      });
-    }
-  };
-
-  EventStream.prototype.filter = function(condition, value) {
-    var self;
-    self = this;
-    return new EventStream(function(cb) {
-      return applyFilter(self.subscribe, cb, condition, value);
     });
   };
 
@@ -289,7 +302,7 @@ assertNotNull = function(args) {
   _results = [];
   for (_i = 0, _len = args.length; _i < _len; _i++) {
     a = args[_i];
-    if (!a) {
+    if (a === null) {
       throw new Error('variable can not be null');
     } else {
       _results.push(void 0);
