@@ -16,7 +16,12 @@
     "gulp-grep-stream": "0.0.2",
     "gulp-spawn": "~0.3.0",
     "gulp-util": "~2.2.14",
-    "colors": "~0.6.2"
+    "colors": "~0.6.2",
+    "docco": "~0.6.3",
+    "gulp-jsdoc": "~0.1.2",
+    "gulp-docco": "0.0.3",
+    "github-flavored-markdown": "~1.0.1",
+    "marked": "~0.3.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

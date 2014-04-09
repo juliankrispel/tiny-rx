@@ -1,9 +1,23 @@
+
+/*
+ * Tiny Rx Documentation
+ *
+ */
 var EventStream, Observable, Property, addEventListener, applyExtraction, applyFilter, applyMapping, assertDomNode, assertFunction, assertNotNull, assertString, fromDomEvent, inArray, isArray, isDomNode, isFunction, isNumber, isObject, isString, needlesInHaystack, trx,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Observable = (function() {
+
+  /*
+   * Observable is the base primitive that all others inherit from
+   */
+
+  /*
+   * The Observables constructor simply does some initalisation
+   * and forwards the arguments to the init method of extended classes
+   */
   function Observable() {
     this.createHistory = __bind(this.createHistory, this);
     this.truethy = __bind(this.truethy, this);
@@ -16,6 +30,13 @@ Observable = (function() {
     this._subscribers = [];
     this._init.apply(this, arguments);
   }
+
+
+  /*
+   * Subscribe 
+   * @param {function} subscriber - The callback that gets executed
+   * whenever an event occurs
+   */
 
   Observable.prototype.subscribe = function(subscriber) {
     this._subscribers.push(subscriber);
@@ -411,7 +432,7 @@ trx = {
   }
 };
 
-if (typeof module !== void 0) {
+if (typeof module !== "undefined" && module !== null) {
   module.exports = trx;
 } else {
   window.trx = trx;

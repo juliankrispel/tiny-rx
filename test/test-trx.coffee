@@ -23,3 +23,5 @@ t('Create property from EventStream', (t)->
 
     p.publish(1)
 )
+
+t('Create an EventStream with a subscriptionCallback')

@@ -1,8 +1,27 @@
+###
+# Tiny Rx Documentation
+# 
+###
+
 class Observable
+    ###
+    # Observable is the base primitive that all others inherit from
+    
+    ###
+
+    ###
+    # The Observables constructor simply does some initalisation
+    # and forwards the arguments to the init method of extended classes
+    ###
     constructor: () ->
         @_subscribers = []
         @_init.apply(@, arguments)
 
+    ###
+    # Subscribe 
+    # @param {function} subscriber - The callback that gets executed
+    # whenever an event occurs
+    ###
     subscribe: (subscriber) =>
         @_subscribers.push(subscriber)
         @
@@ -112,8 +131,11 @@ applyMapping = (subscriber, cb, mapping) ->
 applyFilter = (subscriber, cb, condition, value) ->
     assertNotNull(subscriber, cb, condition)
     if(isString(condition))
-        assertNotNull(value)
-        if(isString(value))
+        if(!value)
+            subscribe((e)->
+                cb(e) if e.hasOwnProperty(condition)
+            )
+        else if(value != undefined && value != null)
             subscriber((e)->
                 cb(e) if e[condition] == value
             )
@@ -262,7 +284,7 @@ trx = {
         new Property( subscribe, aggregator, initialValue )
 }
 
-if typeof module != undefined
+if module?
     module.exports = trx
 else
     window.trx = trx
