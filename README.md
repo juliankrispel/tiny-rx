@@ -21,27 +21,27 @@ var trx = require('tiny-rx');
 There are basically two classes that trx provides, EventStream and Property. They both inherit the same interface, with the main difference that Property holds a state.
 
 
-### `trx.createStream(eventCallback)`
+##### `trx.createStream(eventCallback)`
 Library method for creating streams. (Internally this executes `new EventStream(eventCallback)`)
 
 | Argument | Type | Details |
 | ---- | ---- | --- |
 | `notifier` | `[function]` | A function that notifies the EventStream |
 
-#### Example
-Note that to successfully notify a stream, you need to call the callback function that is passed to the notifier as the only argument.
-
+__Example:__
 ```javascript
 var clickStream = trx.createStream(
     function(notifyStream){
         document.addEventListener('click', function(e){
+            // To successfully notify a stream, execute the 
+            // callback passed to your notifier function.
             notifyStream(e);
         });
     }
 );
 ```
 
-### `trx.fromDomEvent(eventName, selectors)`
+##### `trx.fromDomEvent(eventName, selectors)`
 Convenience method for creating an EventStream from dom events.
 
 | Argument | Type | Details |
@@ -51,8 +51,7 @@ Convenience method for creating an EventStream from dom events.
 
 __`Returns instance of `EventStream`__
 
-#### Example
-
+__Example:__
 ```javascript
 // Create stream from click events on every button element
 var buttonClickEvents = trx.fromDomEvent('click', 'button');
@@ -67,7 +66,7 @@ var linkClickEvents = trx.fromDomEvent('click', 'a[href]');
 ## EventStream
 An EventStream is an object that can both subscribe to and publish events (or arbitrary values).
 
-### `EventStream.subscribe( callback )`
+#####`EventStream.subscribe( callback )`
 
 | Argument | Type | Details |
 | ---- | ---- | --- |
@@ -75,7 +74,7 @@ An EventStream is an object that can both subscribe to and publish events (or ar
   
 __Returns `EventStream` that we subscribed to__
 
-#### Example:
+__Example:__
 ```javascript
 // First create a stream
 var clicks = trx.fromDomEvent('click', document);
@@ -86,7 +85,7 @@ clicks.subscribe(function(e){
 });
 ```
 
-### `EventStream.map( mapping )`
+##### `EventStream.map( mapping )`
 
 | Argument | Type | Details |
 | ---- | ---- | --- |
@@ -95,7 +94,7 @@ clicks.subscribe(function(e){
 
 __Returns instance of `EventStream`__
 
-#### Example:
+__Example:__
 ```javascript
 var number = 0;
 
@@ -118,7 +117,7 @@ minuses.subscribe(function(value){
 // Now everytime a plusButton or minusButton gets clicked, number changes;
 ```
 
-### `EventStream.extract( extractor )`
+##### `EventStream.extract( extractor )`
 
 | Argument | Type | Details |
 | ---- | ---- | --- |
@@ -139,7 +138,7 @@ classes.subscribe(function(xValue){
 });
 ```
 
-### `EventStream.filter( condition, [value] )`
+##### `EventStream.filter( condition, [value] )`
 
 | Argument | Type | Details |
 | ---- | ---- | --- |
@@ -150,20 +149,22 @@ classes.subscribe(function(xValue){
 
 __Returns instance of `EventStream`__
 
+__Example:__
 ```javascript
 // TODO: Write Example
 ```
 
-### `EventStream.truethy()`
+##### `EventStream.truethy()`
 Returns an EventStream that only contains truethy values. Does not take any arguments.
 
 __Returns instance of `EventStream`__
 
+__Example:__
 ```javascript
 // TODO: Write Example
 ```
 
-### `EventStream.createHistory( [steps] )`
+##### `EventStream.createHistory( [steps] )`
 Creates a `Property` that contains an array of event objects in the order they were fired.
 
 | Argument | Type | Details |
@@ -172,6 +173,7 @@ Creates a `Property` that contains an array of event objects in the order they w
 
 __Returns instance of `Property`__
 
+__Example:__
 ```javascript
 // TODO: Write Example
 ```
