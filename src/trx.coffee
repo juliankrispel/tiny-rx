@@ -6,7 +6,6 @@
 class Observable
     ###
     # Observable is the base primitive that all others inherit from
-    
     ###
 
     ###

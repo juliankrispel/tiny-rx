@@ -2,7 +2,7 @@
   "name": "tiny-rx",
   "version": "0.0.1",
   "description": "",
-  "main": "main.js",
+  "main": "dist/trx.js",
   "dependencies": {},
   "devDependencies": {
     "gulp": "~3.6.0",
