@@ -39,5 +39,24 @@ t('Create a history from an EventStream', (t)->
     # Publishing this last number should still cause the history only to hold 10 items
     stream.publish(10) 
     stream.publish(11) 
-    t.ok true, 'all good'
+)
+
+t('once only fires callback once', (t)->
+    stream = trx.createStream()
+    value = 0
+
+    stream.once((e)->
+        value++
+    )
+
+    stream.once((e)->
+        value++
+    )
+
+    stream.publish(1) for i in [0..5]
+
+    setTimeout((e)->
+        t.ok value == 2, 'once() only fired one callback'
+        t.end()
+    , 10)
 )

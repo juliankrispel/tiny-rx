@@ -29,6 +29,7 @@ Observable = (function() {
     this.once = __bind(this.once, this);
     this.subscribe = __bind(this.subscribe, this);
     this._subscribers = [];
+    this._oneOffSubscribers = [];
     this._init.apply(this, arguments);
   }
 
@@ -44,23 +45,25 @@ Observable = (function() {
     return this;
   };
 
-  Observable.prototype.once = function(subscribe) {
-    var index, self;
-    index = this._subscribers.length;
-    self = this;
-    this._subscribers.push(function(e) {
-      subscribe(e);
-      return self.splice(index, 1);
-    });
+  Observable.prototype.once = function(subscriber) {
+    this._oneOffSubscribers.push(subscriber);
     return this;
   };
 
   Observable.prototype.publish = function(e) {
-    var s, _i, _len, _ref;
+    var index, s, so, _i, _j, _len, _len1, _ref, _ref1;
     _ref = this._subscribers;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       s = _ref[_i];
       s(e);
+    }
+    _ref1 = this._oneOffSubscribers;
+    for (index = _j = 0, _len1 = _ref1.length; _j < _len1; index = ++_j) {
+      so = _ref1[index];
+      if (so) {
+        so(e);
+      }
+      this._oneOffSubscribers.splice(index, 1);
     }
     return this;
   };

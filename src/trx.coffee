@@ -14,6 +14,7 @@ class Observable
     ###
     constructor: () ->
         @_subscribers = []
+        @_oneOffSubscribers = []
         @_init.apply(@, arguments)
 
     ###
@@ -25,17 +26,15 @@ class Observable
         @_subscribers.push(subscriber)
         @
 
-    once: (subscribe) =>
-        index = @_subscribers.length
-        self = @
-        @_subscribers.push((e)->
-            subscribe(e)
-            self.splice(index, 1)
-        )
+    once: (subscriber) =>
+        @_oneOffSubscribers.push(subscriber)
         @
 
     publish: (e) =>
         s(e) for s in @_subscribers
+        for so,index in @_oneOffSubscribers
+            so(e) if so
+            @_oneOffSubscribers.splice(index,1)
         @
 
     map: (mapping) =>
