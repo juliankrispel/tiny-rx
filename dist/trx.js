@@ -26,6 +26,7 @@ Observable = (function() {
     this.extract = __bind(this.extract, this);
     this.map = __bind(this.map, this);
     this.publish = __bind(this.publish, this);
+    this.once = __bind(this.once, this);
     this.subscribe = __bind(this.subscribe, this);
     this._subscribers = [];
     this._init.apply(this, arguments);
@@ -40,6 +41,17 @@ Observable = (function() {
 
   Observable.prototype.subscribe = function(subscriber) {
     this._subscribers.push(subscriber);
+    return this;
+  };
+
+  Observable.prototype.once = function(subscribe) {
+    var index, self;
+    index = this._subscribers.length;
+    self = this;
+    this._subscribers.push(function(e) {
+      subscribe(e);
+      return self.splice(index, 1);
+    });
     return this;
   };
 
@@ -108,7 +120,7 @@ Observable = (function() {
       steps = 100;
     }
     return this.createProperty(function(historyAsArray, e) {
-      if (historyAsArray.length > steps) {
+      if (historyAsArray.length >= steps) {
         historyAsArray.shift();
       }
       historyAsArray.push(e);
@@ -216,8 +228,13 @@ applyMapping = function(subscriber, cb, mapping) {
 applyFilter = function(subscriber, cb, condition, value) {
   assertNotNull(subscriber, cb, condition);
   if (isString(condition)) {
-    assertNotNull(value);
-    if (isString(value)) {
+    if (!value) {
+      return subscribe(function(e) {
+        if (e.hasOwnProperty(condition)) {
+          return cb(e);
+        }
+      });
+    } else if (value !== void 0 && value !== null) {
       return subscriber(function(e) {
         if (e[condition] === value) {
           return cb(e);
@@ -259,7 +276,6 @@ applyExtraction = function(subscriber, cb, extraction) {
 
 inArray = function(needle, haystack) {
   var i, inHaystack, _i, _len;
-  console.log(needle);
   assertNotNull(needle);
   assertArray(haystack);
   inHaystack = false;

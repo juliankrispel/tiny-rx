@@ -25,6 +25,15 @@ class Observable
         @_subscribers.push(subscriber)
         @
 
+    once: (subscribe) =>
+        index = @_subscribers.length
+        self = @
+        @_subscribers.push((e)->
+            subscribe(e)
+            self.splice(index, 1)
+        )
+        @
+
     publish: (e) =>
         s(e) for s in @_subscribers
         @
@@ -68,7 +77,7 @@ class Observable
 
     createHistory: (steps = 100) =>
         @createProperty((historyAsArray, e) ->
-            historyAsArray.shift() if(historyAsArray.length > steps)
+            historyAsArray.shift() if(historyAsArray.length >= steps)
             historyAsArray.push e
             historyAsArray
         , [])
@@ -165,7 +174,6 @@ applyExtraction = (subscriber, cb, extraction) ->
         )
 
 inArray = (needle, haystack) ->
-    console.log(needle)
     assertNotNull(needle)
     assertArray(haystack)
     inHaystack = false
@@ -239,8 +247,8 @@ addEventListener = (obj, evt, fnc) ->
             ## Let's wrap it with our own function inside another function
             fnc = ((f1,f2)->
                  ()->
-                    f1.apply(this.arguments)
-                    f2.apply(this.arguments)
+                    f1.apply(@arguments)
+                    f2.apply(@arguments)
             )(obj[evt], fnc)
         obj[evt] = fnc
         true

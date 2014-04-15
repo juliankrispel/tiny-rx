@@ -56,7 +56,6 @@ gulp.task('default', function () {
                     });
                 })
         }));
-        //
 //    gulp.src(['./test/*.coffee'])
 //        .pipe(watch(function(files) {
 //            return files.pipe(coffee({bare: true}))
