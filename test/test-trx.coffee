@@ -33,7 +33,13 @@ t('Create a history from an EventStream', (t)->
 
     history.filter((e)-> e.length > 9 && e[9] == 11).subscribe((e)->
         t.ok e.length == 10, 'history holds right amount of items'
-        t.end()
+        if(e.length == 10)
+            history.reset()
+            setTimeout(()->
+                console.log('empty init?', history._initialValue)
+                t.ok(history.value().length == 0, 'history contains empty array after reset')
+                t.end()
+            ,2)
     )
 
     # Publishing this last number should still cause the history only to hold 10 items

@@ -81,23 +81,24 @@ class Observable
             historyAsArray
         , [])
 
-    createProperty: (aggregator, initialValue) ->
+    createProperty: (aggregator, initialValue) =>
         new Property( @subscribe, aggregator, initialValue )
 
 
 
 class Property extends Observable
     _init: (subscribe, aggregator, initialValue = 0)->
-        @_value = @_initialValue = initialValue
+        self = @
+        @_initialValue = initialValue
+        @_value = clone(initialValue)
 
         if(isFunction(subscribe) && isFunction(aggregator))
-            self = @
             subscribe((e)->
                 self._value = aggregator(self._value, e)
                 self.publish(self._value)
             )
 
-    reset: () => @_value = @initialValue
+    reset: () =>  @_value = clone(@_initialValue)
     value: (set) =>
         if(set != undefined)
             @_value = set
@@ -152,6 +153,9 @@ applyMapping = (subscriber, cb, mapping) ->
         subscriber((e)->
             cb(mapping)
         )
+
+clone = (obj) ->
+    JSON.parse(JSON.stringify(obj))
 
 applyFilter = (subscriber, cb, condition, value) ->
     assertNotNull(subscriber, cb, condition)

@@ -3,7 +3,7 @@
  * Tiny Rx Documentation
  *
  */
-var EventStream, Observable, Property, addEventListener, applyExtraction, applyFilter, applyMapping, assertDomNode, assertFunction, assertNotNull, assertString, fromDomEvent, inArray, isArray, isDomNode, isFunction, isNumber, isObject, isString, needlesInHaystack, trx,
+var EventStream, Observable, Property, addEventListener, applyExtraction, applyFilter, applyMapping, assertDomNode, assertFunction, assertNotNull, assertString, clone, fromDomEvent, inArray, isArray, isDomNode, isFunction, isNumber, isObject, isString, needlesInHaystack, trx,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -19,6 +19,7 @@ Observable = (function() {
    * and forwards the arguments to the init method of extended classes
    */
   function Observable() {
+    this.createProperty = __bind(this.createProperty, this);
     this.createHistory = __bind(this.createHistory, this);
     this.truethy = __bind(this.truethy, this);
     this.filter = __bind(this.filter, this);
@@ -153,9 +154,10 @@ Property = (function(_super) {
     if (initialValue == null) {
       initialValue = 0;
     }
-    this._value = this._initialValue = initialValue;
+    self = this;
+    this._initialValue = initialValue;
+    this._value = clone(initialValue);
     if (isFunction(subscribe) && isFunction(aggregator)) {
-      self = this;
       return subscribe(function(e) {
         self._value = aggregator(self._value, e);
         return self.publish(self._value);
@@ -164,7 +166,7 @@ Property = (function(_super) {
   };
 
   Property.prototype.reset = function() {
-    return this._value = this.initialValue;
+    return this._value = clone(this._initialValue);
   };
 
   Property.prototype.value = function(set) {
@@ -268,6 +270,10 @@ applyMapping = function(subscriber, cb, mapping) {
       return cb(mapping);
     });
   }
+};
+
+clone = function(obj) {
+  return JSON.parse(JSON.stringify(obj));
 };
 
 applyFilter = function(subscriber, cb, condition, value) {
